@@ -1,11 +1,28 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 
 public class Worker {
@@ -14,7 +31,15 @@ public class Worker {
 	public static ArrayList<String> user2games;
 	public static ArrayList<String> intersection;
 
+	private static JFrame resultFrame;
+	private static JTextArea resultText;
+	private static String resultString;
+	private static File resultFile;
+	private static JFileChooser fc;
+
 	public static void main(String[] args) {
+		resultWindow();
+
 		user1games = new ArrayList<String>();
 		user2games = new ArrayList<String>();
 		intersection = new ArrayList<String>();
@@ -22,16 +47,31 @@ public class Worker {
 
 		String userName1 = null, userName2 = null;
 		
-		try {
-			System.out.println("enter username1: ");
-			userName1 = br.readLine();
-			System.out.println("enter username2: ");
-			userName2 = br.readLine();
-		} catch (IOException ioe) {
-			System.exit(1);
+		// try {
+		// System.out.println("enter username1: ");
+		// userName1 = br.readLine();
+		// System.out.println("enter username2: ");
+		// userName2 = br.readLine();
+		// } catch (IOException ioe) {
+		// System.exit(1);
+		// }
+		System.out.println();
+		System.out.println();
+
+		userName1 = (String) JOptionPane.showInputDialog(null, "Enter a public Steam username:\n\nPublic id is at the end of your profile, "
+				+ "\neg: http://steamcommunity.com/id/pewdie = pewdie\nIf you haven't setup a custom ID, your ID is just an integer.",
+				"Enter username 1", JOptionPane.PLAIN_MESSAGE, null, null, null);
+
+		if (userName1 == null || userName1.equals("")) {
+			System.exit(0);
 		}
-		System.out.println();
-		System.out.println();
+		userName2 = (String) JOptionPane.showInputDialog(null, "Enter another public Steam username:\n\nPublic id is at the end of your profile, "
+				+ "\neg: http://steamcommunity.com/id/pewdie = pewdie\nIf you haven't setup a custom ID, your ID is just an integer.",
+				"Enter username 1", JOptionPane.PLAIN_MESSAGE, null, null, null);
+
+		if (userName2 == null || userName2.equals("")) {
+			System.exit(0);
+		}
 
 
 		// System.out.println(userName1 + " " + userName2);
@@ -47,9 +87,15 @@ public class Worker {
 		intersection.addAll(user1games);
 		intersection.retainAll(user2games);
 
+		StringBuilder sb = new StringBuilder();
+		sb.append("GAMES " + userName1 + " AND " + userName2 + " HAVE IN COMMON\n\n");
 		for (String s : intersection) {
-			System.out.println(s);
+			sb.append(s + "\n");
 		}
+		resultString = sb.toString();
+		resultText.setText(resultString);
+		resultFrame.setVisible(true);
+
 
 		System.out.println();
 
@@ -96,6 +142,7 @@ public class Worker {
 								game = game.substring(0, game.indexOf("\",\"logo\":"));
 								game = game.replace("\\u00ae", "");
 								game = game.replace("\\u221e", "");
+								game = game.replace("\\u2122", "");
 
 								games.add(game);
 
@@ -116,6 +163,56 @@ public class Worker {
 		}
 
 		return games;
+	}
+
+	public synchronized static void resultWindow() {
+		resultFrame = new JFrame("Results");
+		File resultPath = new File(System.getProperty("user.dir"));
+		fc = new JFileChooser(resultPath);
+
+		FileFilter filter = new FileNameExtensionFilter("Text file (*.txt)", "txt");
+		fc.addChoosableFileFilter(filter);
+		fc.setFileFilter(filter);
+
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		Dimension frameSize = new Dimension((int) (screenSize.width / 2), (int) (screenSize.height / 2));
+		int x = (int) (frameSize.width / 2);
+		int y = (int) (frameSize.height / 2);
+		resultFrame.setBounds(x, y, 400, frameSize.height);
+
+		resultText = new JTextArea();
+		resultText.setText("");
+		resultText.setEditable(false);
+
+		JButton saveFile = new JButton("Save Results");
+		saveFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int returnVal = fc.showSaveDialog(null);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File f = fc.getSelectedFile();
+					String filepath = f.getAbsolutePath();
+					String filename = f.getName();
+
+					if (!filename.contains(".txt")) {
+						resultFile = new File(filepath + ".txt");
+					} else {
+						resultFile = f;
+					}
+
+					try {
+						Files.write(Paths.get(resultFile.getAbsolutePath()), resultString.getBytes());
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+		JPanel controls = new JPanel();
+		controls.setLayout(new FlowLayout());
+		controls.add(saveFile);
+
+		resultFrame.getContentPane().add(new JScrollPane(resultText), BorderLayout.CENTER);
+		resultFrame.getContentPane().add(controls, BorderLayout.SOUTH);
 	}
 
 }
