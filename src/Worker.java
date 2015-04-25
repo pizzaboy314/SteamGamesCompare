@@ -43,18 +43,9 @@ public class Worker {
 		user1games = new ArrayList<String>();
 		user2games = new ArrayList<String>();
 		intersection = new ArrayList<String>();
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
 		String userName1 = null, userName2 = null;
 		
-		// try {
-		// System.out.println("enter username1: ");
-		// userName1 = br.readLine();
-		// System.out.println("enter username2: ");
-		// userName2 = br.readLine();
-		// } catch (IOException ioe) {
-		// System.exit(1);
-		// }
 		System.out.println();
 		System.out.println();
 
@@ -103,7 +94,6 @@ public class Worker {
 
 	public static ArrayList<String> parseHTML(String input) {
 		ArrayList<String> games = new ArrayList<String>();
-		boolean grabJPG = false;
 		String url = input;
 
 		while (url != null) {
