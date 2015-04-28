@@ -96,60 +96,55 @@ public class Worker {
 		ArrayList<String> games = new ArrayList<String>();
 		String url = input;
 
-		while (url != null) {
-			String nextURL = null;
+		try {
+			URL source = null;
+			boolean valid = true;
 			try {
-				URL source = null;
-				boolean valid = true;
+				source = new URL(url);
+			} catch (MalformedURLException e) {
+				valid = false;
+			}
+			while (valid == false) {
+				valid = true;
+				url = (String) JOptionPane.showInputDialog(null, "Malformed URL format. Are you sure you copied the entire URL?\n" + "Try again:",
+						"Provide URL", JOptionPane.PLAIN_MESSAGE, null, null, null);
 				try {
 					source = new URL(url);
 				} catch (MalformedURLException e) {
 					valid = false;
 				}
-				while (valid == false) {
-					valid = true;
-					url = (String) JOptionPane.showInputDialog(null,
-							"Malformed URL format. Are you sure you copied the entire URL?\n" + "Try again:", "Provide URL",
-							JOptionPane.PLAIN_MESSAGE, null, null, null);
-					try {
-						source = new URL(url);
-					} catch (MalformedURLException e) {
-						valid = false;
-					}
-				}
-
-				BufferedReader in = new BufferedReader(new InputStreamReader(source.openStream()));
-
-				String inputLine = in.readLine();
-				while (inputLine != null) {
-					// System.out.println(inputLine);
-					String[] arr;
-					if (inputLine.contains("rgGames")) {
-						arr = inputLine.split("name");
-						for (String line : arr) {
-							if (!line.contains("var rgGames") && line.contains("logo")) {
-								String game = line.substring(3);
-								game = game.substring(0, game.indexOf("\",\"logo\":"));
-								game = game.replace("\\u00ae", "");
-								game = game.replace("\\u221e", "");
-								game = game.replace("\\u2122", "");
-
-								games.add(game);
-
-								// System.out.println(game);
-							}
-						}
-						// System.out.println();
-					}
-					inputLine = in.readLine();
-				}
-
-				in.close();
-
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
-			url = nextURL;
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(source.openStream()));
+
+			String inputLine = in.readLine();
+			while (inputLine != null) {
+				// System.out.println(inputLine);
+				String[] arr;
+				if (inputLine.contains("rgGames")) {
+					arr = inputLine.split("\"name\"");
+					for (String line : arr) {
+						if (!line.contains("var rgGames") && line.contains("logo")) {
+							String game = line.substring(2);
+							game = game.substring(0, game.indexOf("\",\"logo\":"));
+							game = game.replace("\\u00ae", "");
+							game = game.replace("\\u221e", "");
+							game = game.replace("\\u2122", "");
+
+							games.add(game);
+
+							// System.out.println(game);
+						}
+					}
+					// System.out.println();
+				}
+				inputLine = in.readLine();
+			}
+
+			in.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		return games;
